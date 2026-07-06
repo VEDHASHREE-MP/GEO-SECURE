@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoSecure — {% if mode == 'admin' %}Admin Access{% else %}Sign In{% endif %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#060c18;--surface:#0d1526;--border:#1a2744;
+  --blue:#3b82f6;--red:#ef4444;--text:#e2e8f0;--muted:#64748b;
+}
+body{
+  background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(59,130,246,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,0.04) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none}
+.orb-1{width:400px;height:400px;top:-150px;right:-100px}
+.orb-2{width:350px;height:350px;bottom:-100px;left:-100px}
+
+/* Admin theme */
+body.mode-admin .orb-1{background:rgba(59,130,246,0.12)}
+body.mode-admin .orb-2{background:rgba(99,102,241,0.08)}
+body.mode-admin .brand-icon{background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 0 20px rgba(59,130,246,0.4)}
+body.mode-admin .brand-name span{color:#3b82f6}
+body.mode-admin .mode-badge{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25);color:#93c5fd}
+body.mode-admin .mode-dot{background:#3b82f6}
+body.mode-admin input[type="email"]:focus,
+body.mode-admin input[type="password"]:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,0.15)}
+body.mode-admin .btn{background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 14px rgba(59,130,246,0.3)}
+
+/* Victim theme */
+body.mode-victim .orb-1{background:rgba(239,68,68,0.1)}
+body.mode-victim .orb-2{background:rgba(245,158,11,0.07)}
+body.mode-victim .brand-icon{background:linear-gradient(135deg,#b91c1c,#ef4444);box-shadow:0 0 20px rgba(239,68,68,0.4)}
+body.mode-victim .brand-name span{color:#ef4444}
+body.mode-victim .mode-badge{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#fca5a5}
+body.mode-victim .mode-dot{background:#ef4444}
+body.mode-victim input[type="email"]:focus,
+body.mode-victim input[type="password"]:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(239,68,68,0.12)}
+body.mode-victim .btn{background:linear-gradient(135deg,#b91c1c,#ef4444);box-shadow:0 4px 14px rgba(239,68,68,0.3)}
+
+.box{
+  position:relative;z-index:1;background:var(--surface);
+  border:1px solid var(--border);border-radius:18px;
+  padding:32px 30px;width:100%;max-width:400px;
+  box-shadow:0 40px 80px rgba(0,0,0,0.5);
+}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:28px}
+.brand-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.brand-name{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800}
+.mode-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 10px;
+  border-radius:20px;font-size:0.67rem;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;
+}
+.mode-dot{width:5px;height:5px;border-radius:50%;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+h1{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:5px}
+.subtitle{color:var(--muted);font-size:0.8rem;margin-bottom:22px}
+.field{margin-bottom:16px}
+label{display:block;font-size:0.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+input[type="email"],input[type="password"]{
+  width:100%;background:#060c18;border:1px solid var(--border);
+  border-radius:8px;padding:9px 13px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:0.85rem;
+  transition:border-color 0.2s,box-shadow 0.2s;outline:none;
+}
+.btn{
+  width:100%;border:none;border-radius:8px;padding:10px;color:white;
+  font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;
+  cursor:pointer;margin-top:4px;transition:opacity 0.2s,transform 0.1s;letter-spacing:0.3px;
+}
+.btn:hover{opacity:0.9;transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.back{
+  display:flex;align-items:center;gap:6px;color:var(--muted);
+  font-size:0.75rem;text-decoration:none;margin-bottom:20px;
+  width:fit-content;transition:color 0.2s;
+}
+.back:hover{color:var(--text)}
+.divider{
+  display:flex;align-items:center;gap:12px;
+  margin:16px 0;color:var(--muted);font-size:0.75rem;
+}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.link-row{text-align:center;font-size:0.78rem;color:var(--muted)}
+.link-row a{color:var(--blue);text-decoration:none;font-weight:500}
+.link-row a:hover{text-decoration:underline}
+.error-box{
+  background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);
+  border-radius:8px;padding:10px 14px;font-size:0.83rem;color:#f87171;margin-bottom:14px;
+}
+.lock-note{
+  background:rgba(15,23,42,0.6);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;font-size:0.75rem;color:var(--muted);
+  margin-top:16px;display:flex;align-items:flex-start;gap:8px;line-height:1.5;
+}
+</style>
+</head>
+<body class="mode-{{ mode }}">
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="box">
+  <a href="/" class="back">← Back to Hub</a>
+  <div class="brand">
+    <div class="brand-icon">{% if mode == 'admin' %}🛡️{% else %}🆘{% endif %}</div>
+    <div class="brand-name">Geo<span>Secure</span></div>
+  </div>
+
+  <div class="mode-badge">
+    <span class="mode-dot"></span>
+    {% if mode == 'admin' %}Admin Access{% else %}Emergency SOS{% endif %}
+  </div>
+
+  <h1>{% if mode == 'admin' %}Command Centre{% else %}Welcome back{% endif %}</h1>
+  <p class="subtitle">
+    {% if mode == 'admin' %}
+      Authorised personnel only — Rescue &amp; Recovery command
+    {% else %}
+      Sign in to report an emergency or access your SOS status
+    {% endif %}
+  </p>
+
+  {% if error %}
+  <div class="error-box">❌ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST">
+    <input type="hidden" name="next" value="{{ mode }}">
+    <div class="field">
+      <label>Email Address</label>
+      <input type="email" name="email" placeholder="you@example.com" required autofocus>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter your password" required>
+    </div>
+    <button type="submit" class="btn">
+      {% if mode == 'admin' %}Access Command Centre →{% else %}Sign In →{% endif %}
+    </button>
+  </form>
+
+  {% if mode != 'admin' %}
+  <div class="divider">or</div>
+  <div class="link-row">New user? <a href="/user/register">Create an account</a></div>
+  {% endif %}
+
+  {% if mode == 'admin' %}
+  <div class="lock-note">
+    🔒 This portal is restricted to authorised GeoSecure command staff only.
+    Unauthorised access attempts are logged.
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>
